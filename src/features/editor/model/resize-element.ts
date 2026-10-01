@@ -9,7 +9,7 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.max(minimum, Math.min(value, maximum));
 }
 
-// Keep the edge opposite the dragged handle fixed while staying on the page.
+// 드래그한 방향의 변만 움직이고 반대편 변은 고정한다. 페이지 밖이나 최소 크기 아래로는 줄이지 않는다.
 export function resizeElement<T extends EditorElement>(
   element: T,
   page: PageSize,

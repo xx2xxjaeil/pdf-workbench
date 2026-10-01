@@ -28,8 +28,8 @@ export async function importPdf(file: File): Promise<ImportedDocument> {
       throw new Error("페이지가 없는 PDF는 열 수 없습니다.");
     }
 
-    // The overlay and exporter share top-left coordinates. Rotated/cropped pages
-    // need a separate transform, so reject them rather than misplace edits.
+    // 편집 요소는 페이지 좌측 상단 기준 좌표를 사용한다. 회전·잘림 페이지는 별도 변환 없이는
+    // 미리보기와 내보내기 위치가 어긋나므로 현재는 가져오기를 제한한다.
     const pageSizes = pages.map((page) => {
       const media = page.getMediaBox();
       const crop = page.getCropBox();

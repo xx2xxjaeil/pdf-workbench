@@ -82,6 +82,7 @@ function drawTextElement(
           ? element.width - inset - lineWidth
           : inset;
 
+    // 편집기는 좌측 상단, PDF는 좌측 하단이 원점이므로 Y좌표를 뒤집어 그린다.
     page.drawText(line, {
       x: element.x + alignOffset,
       y:
@@ -211,8 +212,7 @@ export async function exportDocument({
   }
 
   const result = await document.save();
-  // Reopen the result before offering a download. This catches invalid output
-  // without changing the source document in memory.
+  // 다운로드 전에 결과를 다시 열어 PDF 손상과 페이지 수 불일치를 확인한다.
   const verified = await PDFDocument.load(result);
   if (verified.getPageCount() !== pageSizes.length) {
     throw new Error("내보낸 PDF의 페이지 수가 예상과 다릅니다.");

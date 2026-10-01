@@ -28,6 +28,7 @@ function commit(
   next: EditorElement[],
   selectedId = state.selectedId,
 ) {
+  // 새 변경이 생기면 다시 실행 기록을 버리고, 실행 취소 기록은 최근 50단계까지만 보관한다.
   return {
     past: [...state.past.slice(-49), state.present],
     present: next,

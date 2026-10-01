@@ -165,6 +165,7 @@ export function PageElement({
   function handleResizeMove(event: PointerEvent<HTMLButtonElement>) {
     const resize = resizeRef.current;
     if (!resize) return;
+    // 포인터 이동량은 화면 픽셀이므로 확대 비율로 나눠 문서 좌표로 변환한다.
     const next = resizeElement(
       element,
       pageSize,

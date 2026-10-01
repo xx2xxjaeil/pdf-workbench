@@ -25,8 +25,7 @@ export function PdfPage({ bytes, pageIndex, scale, onError }: PdfPageProps) {
       try {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-        // PDF.js may transfer its input buffer to the worker. Keep the original
-        // byte array intact for pdf-lib export.
+        // PDF.js 워커가 버퍼의 소유권을 가져갈 수 있으므로 원본 바이트를 복사해 내보내기용으로 보존한다.
         const task = pdfjs.getDocument({ data: bytes.slice() });
         loadingTask = task;
         const document = await task.promise;
@@ -63,6 +62,7 @@ export function PdfPage({ bytes, pageIndex, scale, onError }: PdfPageProps) {
     void render();
 
     return () => {
+      // 페이지를 바꾸거나 화면을 떠날 때 이전 렌더링을 중단해 늦은 결과가 화면을 덮지 않게 한다.
       disposed = true;
       renderTask?.cancel();
       void loadingTask?.destroy();
