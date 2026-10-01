@@ -497,7 +497,7 @@ export function EditorWorkspace() {
                 </h1>
               </div>
               <span className="canvas-tip">
-                요소를 드래그해 위치를 옮길 수 있습니다
+                드래그 이동 · 텍스트 더블클릭 편집 · 가장자리 크기 조절
               </span>
             </div>
             <div className="page-stage">
@@ -528,7 +528,7 @@ export function EditorWorkspace() {
                     onSelect={() =>
                       dispatch({ type: "select", id: element.id })
                     }
-                    onMove={(updated) =>
+                    onChange={(updated) =>
                       dispatch({ type: "update", element: updated })
                     }
                   />

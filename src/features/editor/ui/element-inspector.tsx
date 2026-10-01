@@ -139,6 +139,7 @@ export function ElementInspector({
               <span>텍스트</span>
               <textarea
                 rows={6}
+                maxLength={10000}
                 value={element.text}
                 onChange={(event) =>
                   onChange({ ...element, text: event.target.value })

@@ -471,6 +471,93 @@ select:focus-visible,
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.inline-text-editor {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: #ffffffed;
+  font-family: "Nanum Gothic", Arial, sans-serif;
+  resize: none;
+  cursor: text;
+  user-select: text;
+}
+.resize-handle {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+}
+.resize-handle::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border: 1px solid #5365da;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 1px 3px #17255a2b;
+}
+.resize-n {
+  top: -6px;
+  left: 12px;
+  right: 12px;
+  height: 12px;
+  cursor: ns-resize;
+}
+.resize-e {
+  top: 12px;
+  right: -6px;
+  bottom: 12px;
+  width: 12px;
+  cursor: ew-resize;
+}
+.resize-s {
+  right: 12px;
+  bottom: -6px;
+  left: 12px;
+  height: 12px;
+  cursor: ns-resize;
+}
+.resize-w {
+  top: 12px;
+  bottom: 12px;
+  left: -6px;
+  width: 12px;
+  cursor: ew-resize;
+}
+.resize-ne {
+  top: -6px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}
+.resize-se {
+  right: -6px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
+.resize-sw {
+  bottom: -6px;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}
+.resize-nw {
+  top: -6px;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
 .placeholder-text {
   color: #aeb6c5;
 }

@@ -12,6 +12,7 @@ import {
   editorHistoryReducer,
   initialHistory,
 } from "../src/features/editor/model/history";
+import { resizeElement } from "../src/features/editor/model/resize-element";
 import { exportDocument } from "../src/features/editor/pdf/export-document";
 import { importPdf } from "../src/features/editor/pdf/import-document";
 
@@ -43,6 +44,26 @@ test("elements stay within page bounds", () => {
   const moved = clampElementToPage({ ...textElement, x: 999, y: -30 }, A4_PAGE);
   assert.equal(moved.x, A4_PAGE.width - textElement.width);
   assert.equal(moved.y, 0);
+});
+
+test("edge and corner resize keep the opposite side fixed", () => {
+  const wider = resizeElement(textElement, A4_PAGE, "e", 70, 0);
+  assert.equal(wider.x, textElement.x);
+  assert.equal(wider.width, textElement.width + 70);
+
+  const fromLeft = resizeElement(textElement, A4_PAGE, "w", 40, 0);
+  assert.equal(fromLeft.x, textElement.x + 40);
+  assert.equal(fromLeft.x + fromLeft.width, textElement.x + textElement.width);
+
+  const corner = resizeElement(textElement, A4_PAGE, "nw", -999, -999);
+  assert.equal(corner.x, 0);
+  assert.equal(corner.y, 0);
+  assert.equal(corner.x + corner.width, textElement.x + textElement.width);
+  assert.equal(corner.y + corner.height, textElement.y + textElement.height);
+
+  const minimum = resizeElement(textElement, A4_PAGE, "se", -999, -999);
+  assert.equal(minimum.width, 20);
+  assert.equal(minimum.height, 20);
 });
 
 test("undo and redo retain immutable snapshots", () => {
