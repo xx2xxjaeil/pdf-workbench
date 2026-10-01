@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDF Workbench
 
-## Getting Started
+A browser-based PDF editing workbench. Open an existing PDF or start with an A4 page, add text, tables, and images, then export the edited PDF.
 
-First, run the development server:
+## What works in the first slice
+
+- Open an existing PDF and navigate its pages.
+- Add editable text, image, and table elements to a page.
+- Change text size, style, color, position, and box width; edit table cells.
+- Undo and redo document changes.
+- Export a PDF built from the original file plus the editor's elements.
+
+The original PDF is preserved under the added elements. Existing AcroForm fields and arbitrary source text are not editable in this first slice. Covering old text with a new element is not redaction and does not remove that text from the PDF. The next engine milestone will address source content editing explicitly.
+
+## Run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. Quality gates are `npm run check` and `npm run build`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Design
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The editor uses PDF points as its coordinate system, with the top-left corner as the app's origin. PDF.js renders imported pages. A typed document model owns added elements and undo/redo history. The exporter draws those elements onto the original bytes with pdf-lib, translating coordinates at the export boundary. This makes the preview and exported placement share the same source values.
 
-## Learn More
+See [architecture notes](docs/architecture.md) for invariants and the source-text editing roadmap.
 
-To learn more about Next.js, take a look at the following resources:
+## Fonts and assets
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The included Nanum Gothic Regular and Bold fonts are from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/nanumgothic) under the SIL Open Font License. Their license is included in `public/fonts/OFL.txt`. The PDF.js worker is copied from the pinned `pdfjs-dist` npm dependency.

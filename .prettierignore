@@ -1,0 +1,6 @@
+.next
+node_modules
+coverage
+package-lock.json
+public/fonts
+public/pdf.worker.min.mjs
