@@ -6,9 +6,11 @@ import {
   Download,
   FilePlus2,
   FileText,
+  FolderOpen,
   ImagePlus,
   Layers3,
   Redo2,
+  Save,
   Table2,
   Type,
   Undo2,
@@ -31,6 +33,7 @@ import {
   type EditorElement,
 } from "../model/document";
 import { editorHistoryReducer, initialHistory } from "../model/history";
+import { createProjectFile, openProjectFile } from "../model/project-file";
 import { exportDocument } from "../pdf/export-document";
 import { importPdf, type ImportedDocument } from "../pdf/import-document";
 import { PdfPage } from "../pdf/pdf-page";
@@ -64,6 +67,17 @@ function imageDimensions(
   });
 }
 
+function downloadBytes(bytes: Uint8Array, mime: string, name: string) {
+  const url = URL.createObjectURL(
+    new Blob([Uint8Array.from(bytes)], { type: mime }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export function EditorWorkspace() {
   const [history, dispatch] = useReducer(editorHistoryReducer, initialHistory);
   const [source, setSource] = useState<ImportedDocument | null>(null);
@@ -72,6 +86,7 @@ export function EditorWorkspace() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const projectInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const pageSizes = source?.pageSizes ?? [A4_PAGE];
@@ -120,12 +135,13 @@ export function EditorWorkspace() {
     setNotice(null);
   }
 
+  function canReplaceDocument(message: string) {
+    return (!source && history.present.length === 0) || window.confirm(message);
+  }
+
   async function handlePdfFile(file: File | undefined) {
     if (!file) return;
-    if (
-      history.present.length > 0 &&
-      !window.confirm("현재 편집 내용을 지우고 새 PDF를 여시겠습니까?")
-    ) {
+    if (!canReplaceDocument("현재 편집 내용을 지우고 새 PDF를 여시겠습니까?")) {
       return;
     }
 
@@ -149,8 +165,7 @@ export function EditorWorkspace() {
 
   async function handleDemo() {
     if (
-      history.present.length > 0 &&
-      !window.confirm("현재 편집 내용을 지우고 예제 PDF를 여시겠습니까?")
+      !canReplaceDocument("현재 편집 내용을 지우고 예제 PDF를 여시겠습니까?")
     ) {
       return;
     }
@@ -213,8 +228,7 @@ export function EditorWorkspace() {
 
   function newDocument() {
     if (
-      history.present.length > 0 &&
-      !window.confirm("현재 편집 내용을 지우고 새 문서를 만드시겠습니까?")
+      !canReplaceDocument("현재 편집 내용을 지우고 새 문서를 만드시겠습니까?")
     ) {
       return;
     }
@@ -222,6 +236,51 @@ export function EditorWorkspace() {
     setPageIndex(0);
     dispatch({ type: "reset" });
     setNotice(null);
+  }
+
+  async function handleProjectFile(file: File | undefined) {
+    if (!file) return;
+    if (
+      !canReplaceDocument("현재 편집 내용을 지우고 프로젝트를 여시겠습니까?")
+    ) {
+      if (projectInputRef.current) projectInputRef.current.value = "";
+      return;
+    }
+
+    setBusy(true);
+    setNotice(null);
+    try {
+      const project = await openProjectFile(file);
+      setSource(project.source);
+      setPageIndex(0);
+      dispatch({ type: "restore", elements: project.elements });
+      setNotice("편집 프로젝트를 열었습니다. 요소를 계속 수정할 수 있습니다.");
+    } catch (error) {
+      setNotice(errorMessage(error));
+    } finally {
+      setBusy(false);
+      if (projectInputRef.current) projectInputRef.current.value = "";
+    }
+  }
+
+  function handleProjectSave() {
+    setNotice(null);
+    try {
+      const bytes = createProjectFile({
+        source,
+        elements: history.present,
+      });
+      downloadBytes(
+        bytes,
+        "application/json",
+        source ? source.name.replace(/\.pdf$/i, ".pdfw") : "untitled.pdfw",
+      );
+      setNotice(
+        "편집 프로젝트를 저장했습니다. 이 파일로 나중에 다시 수정할 수 있습니다.",
+      );
+    } catch (error) {
+      setNotice(errorMessage(error));
+    }
   }
 
   async function handleExport() {
@@ -233,16 +292,11 @@ export function EditorWorkspace() {
         pageSizes,
         elements: history.present,
       });
-      const url = URL.createObjectURL(
-        new Blob([Uint8Array.from(bytes)], { type: "application/pdf" }),
+      downloadBytes(
+        bytes,
+        "application/pdf",
+        source ? source.name.replace(/\.pdf$/i, "-edited.pdf") : "untitled.pdf",
       );
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = source
-        ? source.name.replace(/\.pdf$/i, "-edited.pdf")
-        : "untitled.pdf";
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       setNotice("PDF를 내보냈습니다. 원본 파일은 변경되지 않았습니다.");
     } catch (error) {
       setNotice(errorMessage(error));
@@ -260,6 +314,14 @@ export function EditorWorkspace() {
         accept=".pdf,application/pdf"
         aria-label="PDF 파일 선택"
         onChange={(event) => void handlePdfFile(event.target.files?.[0])}
+      />
+      <input
+        ref={projectInputRef}
+        className="visually-hidden"
+        type="file"
+        accept=".pdfw"
+        aria-label="편집 프로젝트 파일 선택"
+        onChange={(event) => void handleProjectFile(event.target.files?.[0])}
       />
       <input
         ref={imageInputRef}
@@ -312,6 +374,22 @@ export function EditorWorkspace() {
             disabled={busy}
           >
             <Upload size={16} /> PDF 열기
+          </button>
+          <button
+            type="button"
+            className="button-ghost"
+            onClick={() => projectInputRef.current?.click()}
+            disabled={busy}
+          >
+            <FolderOpen size={16} /> 프로젝트 열기
+          </button>
+          <button
+            type="button"
+            className="button-ghost"
+            onClick={handleProjectSave}
+            disabled={busy}
+          >
+            <Save size={16} /> 프로젝트 저장
           </button>
           <button
             type="button"
