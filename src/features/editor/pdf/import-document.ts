@@ -9,7 +9,9 @@ export interface ImportedDocument {
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-export async function importPdf(file: File): Promise<ImportedDocument> {
+export async function importPdf(
+  file: Pick<File, "name" | "size" | "arrayBuffer">,
+): Promise<ImportedDocument> {
   if (!file.name.toLowerCase().endsWith(".pdf")) {
     throw new Error("PDF 파일을 선택해 주세요.");
   }

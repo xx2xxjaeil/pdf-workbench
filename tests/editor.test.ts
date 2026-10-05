@@ -84,6 +84,15 @@ test("undo and redo retain immutable snapshots", () => {
 
   const redone = editorHistoryReducer(undone, { type: "redo" });
   assert.deepEqual(redone.present, changed.present);
+
+  const restored = editorHistoryReducer(redone, {
+    type: "restore",
+    elements: [textElement],
+  });
+  assert.deepEqual(restored.present, [textElement]);
+  assert.equal(restored.past.length, 0);
+  assert.equal(restored.future.length, 0);
+  assert.equal(restored.selectedId, null);
 });
 
 test("PDF import reads page sizes and rejects unsupported rotation", async () => {

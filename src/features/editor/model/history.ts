@@ -12,6 +12,7 @@ export type EditorAction =
   | { type: "update"; element: EditorElement }
   | { type: "remove"; id: string }
   | { type: "select"; id: string | null }
+  | { type: "restore"; elements: EditorElement[] }
   | { type: "reset" }
   | { type: "undo" }
   | { type: "redo" };
@@ -75,6 +76,8 @@ export function editorHistoryReducer(
       );
     case "select":
       return { ...state, selectedId: action.id };
+    case "restore":
+      return { ...initialHistory, present: action.elements };
     case "reset":
       return initialHistory;
     case "undo":
