@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-PDF Workbench edits an existing PDF by preserving the source and adding managed elements. It can also start from a blank A4 page. The source bytes remain local to the browser in this first version. The editor model is session-only: export creates an ordinary PDF, not a reusable project file, and reimporting it does not reconstruct managed elements.
+PDF Workbench edits an existing PDF by preserving the source and adding managed elements. It can also start from a blank A4 page. Source bytes remain local to the browser. The editable model can now be saved as a `.pdfw` project file. Export still creates an ordinary PDF; reimporting that PDF does not reconstruct managed elements.
 
 This boundary is deliberate: PDF pages contain drawing commands, not a universal editable paragraph tree. A text element created by this app is editable in the app model. Text already painted into an imported PDF is not yet editable. The UI must never imply that visually covering a source region deletes the original text.
 
@@ -10,7 +10,7 @@ This boundary is deliberate: PDF pages contain drawing commands, not a universal
 
 ```text
 app/                   Route, metadata, global styles
-features/editor/model/ Typed elements, commands, history
+features/editor/model/ Typed elements, commands, history, project format
 features/editor/pdf/   PDF.js viewer and pdf-lib exporter
 features/editor/ui/    Workspace and element controls
 public/fonts/          Embeddable Unicode fonts and license
@@ -29,10 +29,16 @@ Every managed element stores `x`, `y`, `width`, and `height` in PDF points, meas
 - Export reopens the created PDF during verification, and page count is checked.
 - Unsupported or encrypted inputs are rejected with a readable error.
 
+## Editable project format
+
+`.pdfw` version 1 is a JSON file containing a format marker, version number, optional original PDF (name and Base64 bytes), and the current managed elements. Page sizes are re-derived from the original PDF when a project opens; a blank project uses A4. The file does not store undo/redo history. It is not encrypted and never uploads to a server.
+
+The decoder checks the file size (80 MB), format version, original PDF limit (25 MB), image data limits (5 MB each), unique element IDs, page references, and element bounds before replacing the active document. Unsupported versions and corrupt files leave the current document untouched. Base64 makes project files larger than their source PDFs; a binary container can replace this format in a future version with an explicit migration path.
+
 ## Roadmap
 
 1. First slice: import, add/edit managed elements, export, and verify output (complete).
-2. Save/reopen an editable project file and improve preview/export text-layout parity.
+2. Save/reopen an editable project file (complete); improve preview/export text-layout parity (pending).
 3. AcroForm field editing and source-text inspection.
 4. Narrow source-text replacement with explicit file support and visual verification.
 5. Flow layout across pages and constrained AI edit suggestions with human approval.
